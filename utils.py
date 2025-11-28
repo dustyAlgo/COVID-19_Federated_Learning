@@ -38,12 +38,22 @@ def sparsify(features, top_k_ratio=0.1):
 # Differential Privacy
 # Gaussian Mechanism
 # ----------------------------
-def add_dp_noise(features, epsilon=1.0):
-    sensitivity = np.linalg.norm(features, ord=2)
-    sigma = sensitivity / epsilon
 
+def add_dp_noise(features, epsilon=1.0, delta=1e-5):
+    """Improved differential privacy with Gaussian mechanism"""
+    # Calculate L2 sensitivity more accurately
+    sensitivity = np.max(np.linalg.norm(features, ord=2, axis=1))
+    
+    # Gaussian mechanism parameters
+    sigma = sensitivity * np.sqrt(2 * np.log(1.25 / delta)) / epsilon
+    
     noise = np.random.normal(0, sigma, size=features.shape)
-    return features + noise
+    noisy_features = features + noise
+    
+    # Clip to maintain reasonable values
+    noisy_features = np.clip(noisy_features, -10, 10)
+    
+    return noisy_features
 
 
 # ----------------------------
@@ -69,3 +79,32 @@ def evaluate_model(model, dataloader, device):
     
     accuracy = 100 * correct / total
     return accuracy
+
+# privacy estimation
+
+def calculate_privacy_metrics(original_features, noisy_features):
+    """Calculate privacy metrics like MSE and correlation"""
+    mse = np.mean((original_features - noisy_features) ** 2)
+    correlation = np.corrcoef(original_features.flatten(), noisy_features.flatten())[0, 1]
+    
+    return {
+        'mse': mse,
+        'correlation': correlation,
+        'privacy_score': 1 / (1 + mse)  # Higher score = better privacy
+    }
+
+def measure_inversion_success(original_images, recovered_images):
+    """Measure inversion attack success qualitatively"""
+    # This would compare original vs recovered images
+    # For now, return some metrics
+    if original_images.shape != recovered_images.shape:
+        return {"success_rate": 0.0, "similarity": 0.0}
+    
+    # Simple similarity measure (SSIM would be better)
+    similarity = np.mean(np.abs(original_images - recovered_images))
+    success_rate = 1.0 if similarity < 0.5 else 0.0  # Arbitrary threshold
+    
+    return {
+        "success_rate": success_rate,
+        "similarity": similarity
+    }

@@ -28,8 +28,7 @@ env/
 ENV/
 flenv/  
 .venv/
-
-data/           
+          
 *.nii
 *.nii.gz
 *.png
@@ -38,14 +37,15 @@ data/
 *.dcm
 *.dicom
 *.csv
+*.zip
 
 *.pth
 *.pt
 *.bin
 *.onnx
 checkpoints/
-models/         # Exclude trained model weights
-runs/           # TensorBoard/MLflow runs
+models/         
+runs/           
 
 .ipynb_checkpoints
 *.ipynb
