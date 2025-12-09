@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-# Import your local modules
+
 from server import Server
 from client import Client
-from models import * # Assuming LightweightCOVIDNet, ResNet18COVID, VGG11COVID are here
+from models import * 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from utils import evaluate_model
@@ -22,7 +22,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# NOTE: Update these paths to match your actual folder structure
+# Update these paths to match your actual folder structure
 try:
     hospital_a_dataset = datasets.ImageFolder(root='data/Hospital_A/', transform=transform)
     hospital_b_dataset = datasets.ImageFolder(root='data/Hospital_B/', transform=transform)
@@ -40,15 +40,10 @@ except Exception as e:
     client_datasets = [hospital_a_dataset, hospital_b_dataset, hospital_c_dataset]
     validation_loader = DataLoader(datasets.FakeData(transform=transform), batch_size=16)
 
-# ==========================================
 # Core Helper Functions
-# ==========================================
 
 def simple_feature_inversion(model, target_features, device="cpu", steps=500):
-    """
-    Real Optimization-Based Inversion Attack.
-    Attempts to reconstruct the input image 'x' such that Model(x) matches 'target_features'.
-    """
+
     model.eval()
     
     # Batch size detection
@@ -84,9 +79,7 @@ def simple_feature_inversion(model, target_features, device="cpu", steps=500):
     return dummy_input.detach().cpu().numpy()
 
 def visualize_inversion_results(original_images, recovered_dict, labels, class_names):
-    """
-    Visualizes the Original Image vs Reconstructed Images at different Epsilon levels.
-    """
+
     plt.figure(figsize=(12, 8))
     
     num_samples = len(original_images)
@@ -118,9 +111,8 @@ def visualize_inversion_results(original_images, recovered_dict, labels, class_n
     print("Saved inversion_attack_results.png")
     plt.show()
 
-# ==========================================
 # Experiment 1: Noise vs Accuracy
-# ==========================================
+
 
 def run_noise_vs_accuracy_experiment():
     """Test different noise levels (epsilon values) against model accuracy."""
@@ -183,9 +175,8 @@ def run_noise_vs_accuracy_experiment():
     
     return results
 
-# ==========================================
 # Experiment 2: Inversion Attack Recovery
-# ==========================================
+
 
 def inversion_attack_experiment():
     """Qualitative inversion attack recovery demonstration."""
@@ -250,9 +241,8 @@ def inversion_attack_experiment():
         
     visualize_inversion_results(original_images_np, recovered_images_dict, labels.numpy(), class_names)
 
-# ==========================================
 # Main Execution
-# ==========================================
+
 
 if __name__ == "__main__":
     # Ensure directories exist

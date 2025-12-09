@@ -15,6 +15,6 @@ for i, (model, name) in enumerate(zip(models, model_names)):
     
     # Should be torch.Size([2, 256]) for all models
     if features.shape[1] != 256:
-        print(f"❌ ERROR: {name} outputs {features.shape[1]} features, expected 256!")
+        print(f"ERROR: {name} outputs {features.shape[1]} features, expected 256!")
     else:
-        print(f"✅ {name}: Correct 256 features!")
+        print(f"{name}: Correct 256 features!")
