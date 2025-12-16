@@ -1,19 +1,24 @@
 import torch
 import numpy as np
+import os
 from server import Server
 from client import Client
 from models import LightweightCOVIDNet, ResNet18COVID, VGG11COVID
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from utils import evaluate_model
+from utils import evaluate_full_metrics, plot_confusion_matrix, plot_roc
 import collections
 
-# 1. Hyperparameters & Configuration
+# 1. Hyperparameters and Configuration
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 NUM_ROUNDS = 2
 LOCAL_EPOCHS = 3          # Increased from 1 to allow better local learning
 LEARNING_RATE = 0.001
-ALIGNMENT_WEIGHT = 2.0    # Controls how much clients listen to the server
+ALIGNMENT_WEIGHT = {
+    0: 2.0,   # LightweightCNN
+    1: 2.0,   # ResNet18
+    2: 0.2    # VGG11 (CRITICAL CHANGE)
+}
 DP_EPSILON = 1.0          # Privacy budget
 TOP_K_RATIO = 0.1         # Compression ratio
 
@@ -68,12 +73,13 @@ for round_num in range(NUM_ROUNDS):
         
         # 1. Train locally using Global Knowledge from previous round
         client.train_local(
-            global_features=global_features, 
-            epochs=LOCAL_EPOCHS, 
+            global_features=global_features,
+            epochs=LOCAL_EPOCHS,
             lr=LEARNING_RATE,
-            alignment_weight=ALIGNMENT_WEIGHT,
+            alignment_weight=ALIGNMENT_WEIGHT[client.client_id],
             class_weights=weights_tensor
         )
+
         
         # 2. Extract and sanitize features
         fv = client.get_secure_features(epsilon=DP_EPSILON, top_k_ratio=TOP_K_RATIO)
@@ -90,14 +96,35 @@ for round_num in range(NUM_ROUNDS):
     
     print(f" > Global Prototype Shape: {global_features.shape}")
 
+# Detailed Evaluation (Validation Set)
+print("\nDetailed Evaluation (Validation Set):")
 
-    print("\nValidation Accuracy:")
-    avg_acc = 0
-    for i, client in enumerate(clients):
-        acc = evaluate_model(client.model, validation_loader, DEVICE)
-        avg_acc += acc
-        print(f"   Client {i} ({type(client.model).__name__}): {acc:.2f}%")
-    print(f"   Average System Accuracy: {avg_acc / len(clients):.2f}%")
+CLASS_NAMES = ["COVID-19", "Normal", "Other Pneumonia"]
+SAVE_DIR = "results"
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+for i, client in enumerate(clients):
+    metrics, cm, y_true, y_prob = evaluate_full_metrics(
+        client.model,
+        validation_loader,
+        DEVICE,
+        num_classes=3
+    )
+
+    print(f"\nClient {i} ({type(client.model).__name__}) | Round {round_num + 1}")
+    for k, v in metrics.items():
+        if isinstance(v, float):
+            print(f"  {k}: {v:.4f}")
+        else:
+            print(f"  {k}: {np.round(v, 4)}")
+
+    plot_confusion_matrix(
+        cm, round_num + 1, i, SAVE_DIR, CLASS_NAMES
+    )
+
+    plot_roc(
+        y_true, y_prob, round_num + 1, i, SAVE_DIR, CLASS_NAMES
+    )
 
 
 # 5. Final Summary

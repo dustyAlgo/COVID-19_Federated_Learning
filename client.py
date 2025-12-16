@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 class Client:
     def __init__(self, client_id, model, train_dataset, device):
-        self.id = client_id
+        self.client_id = client_id
         self.model = model.to(device)
         self.train_data = DataLoader(train_dataset, batch_size=16, shuffle=True)
         self.device = device

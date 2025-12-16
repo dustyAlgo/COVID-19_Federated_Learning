@@ -8,7 +8,7 @@ test_input = torch.randn(2, 1, 128, 128)  # batch_size=2, grayscale 128x128
 models = [LightweightCOVIDNet(), ResNet18COVID(), VGG11COVID()]
 model_names = ["Custom CNN", "ResNet18", "VGG11"]
 
-print("🔍 Validating model feature dimensions:")
+print("Validating model feature dimensions:")
 for i, (model, name) in enumerate(zip(models, model_names)):
     features = model.extract_features(test_input)
     print(f"{name}: {features.shape}")
