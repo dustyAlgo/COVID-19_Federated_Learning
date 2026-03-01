@@ -129,5 +129,5 @@ for i, client in enumerate(clients):
 
 # 5. Final Summary
 print("\n=== Training Complete ===")
-# Optional: Save models
+# Saving models
 torch.save(clients[0].model.state_dict(), "client_0_final.pth")

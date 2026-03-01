@@ -86,7 +86,8 @@ Differential Privacy (DP) is the most effective method to defend against reconst
 
 However:
 
-- DP-SGD is computationally heavy  
+- DP-SGD is computationally heavy
+DP-SGD: Differentially Private Stochastic Gradient Descent (DP-SGD) is a technique for training machine learning models that ensures individual training data points cannot be identified, providing a quantifiable privacy guarantee. 
 - It slows down training  
 - It requires modifying the optimizer
 
